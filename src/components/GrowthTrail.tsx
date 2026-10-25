@@ -3,15 +3,45 @@ import {useEffect,useRef} from 'react';
 type Sample={x:number;y:number;angle:number;born:number;id:number;distance:number};
 const hash=(n:number)=>{const v=Math.sin(n*127.1+31.7)*43758.5453;return v-Math.floor(v);};
 const ease=(v:number)=>{const t=Math.max(0,Math.min(1,v));return t*t*(3-2*t);};
+function mossTexture(variant:number){
+ const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
+ const c=canvas.getContext('2d')!;c.scale(2,2);
+ const hue=[77,91,107,65,120,83][variant%6];
+ const floorTone=[11,17,9,23,12,26][variant%6];
+ // Dense individual fronds give the moss its softness, without a gradient wash.
+ for(let j=0;j<180;j++){
+  const r=Math.sqrt(hash(j+variant*53))*25,a=hash(j*3+variant*107)*Math.PI*2;
+  const x=32+Math.cos(a)*r,y=32+Math.sin(a)*r*.86;
+  const direction=hash(j*7+variant)*6.28,len=2.2+hash(j*11)*7.5;
+  const tone=floorTone+7+hash(j*13+variant*83)*22;
+  c.strokeStyle=`hsla(${hue+hash(j*17)*15},${30+hash(j)*24}%,${tone}%,${.25+hash(j*19)*.55})`;
+  c.lineWidth=.28+hash(j*23)*.44;
+  c.beginPath();c.moveTo(x,y);
+  const ex=x+Math.cos(direction)*len,ey=y+Math.sin(direction)*len;
+  c.quadraticCurveTo(x+Math.cos(direction+.4)*len*.5,y+Math.sin(direction+.4)*len*.5,ex,ey);c.stroke();
+  for(let k=1;k<4;k++){
+   const t=k/4,bx=x+(ex-x)*t,by=y+(ey-y)*t;
+   const leaf=(1-t)*2.2+.5;
+   for(const side of [-1,1]){const ang=direction+side*.8;
+    c.strokeStyle=`hsla(${hue+8},${34+hash(j)*23}%,${tone+7}%,.72)`;
+    c.beginPath();c.moveTo(bx,by);c.lineTo(bx+Math.cos(ang)*leaf,by+Math.sin(ang)*leaf);c.stroke();
+   }
+  }
+  if(j%3===0){c.fillStyle=`hsla(${hue+5},48%,${tone+17}%,.54)`;c.beginPath();c.ellipse(ex,ey,.4,.65,direction,0,Math.PI*2);c.fill();}
+ }
+ return canvas;
+}
+
 export default function GrowthTrail({paused,resetKey,reduced,onGrow}:{paused:boolean;resetKey:number;reduced:boolean;onGrow:()=>void}){
  const canvas=useRef<HTMLCanvasElement>(null),samples=useRef<Sample[]>([]),clock=useRef(0),travel=useRef(0),serial=useRef(0),grow=useRef(onGrow);grow.current=onGrow;
  useEffect(()=>{samples.current=[];serial.current=0;travel.current=0;},[resetKey]);
  useEffect(()=>{
- const el=canvas.current!,ctx=el.getContext('2d')!;let w=0,h=0,frame=0,previous=performance.now(),lastMove=0,active=false,initialized=false,heading=0;
+ const el=canvas.current!,ctx=el.getContext('2d')!,textures=Array.from({length:6},(_,i)=>mossTexture(i));let w=0,h=0,frame=0,previous=performance.now(),lastMove=0,active=false,initialized=false,heading=0;
  let tip={x:0,y:0},target={x:0,y:0},anchor={x:0,y:0};const coarse=matchMedia('(pointer:coarse)').matches;
  const resize=()=>{w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio,2);el.width=w*d;el.height=h*d;ctx.setTransform(d,0,0,d,0,0);};resize();
  const leave=()=>{active=false;initialized=false;};
  const move=(event:PointerEvent)=>{if(paused||reduced||(coarse&&event.buttons===0)||(event.target as HTMLElement).closest('button,a,input,.dock-area,.fossil-note,.fossil-discovery')){leave();return;}const x=event.clientX,y=event.clientY,now=performance.now();if(!initialized||now-lastMove>500||Math.hypot(x-target.x,y-target.y)>280){tip={x,y};anchor={x,y};heading=0;initialized=true;}target={x,y};active=true;lastMove=now;};
+ function stamp(x:number,y:number,size:number,variant:number,alpha:number,angle:number){if(alpha<.008||size<.1)return;ctx.save();ctx.globalAlpha=alpha;ctx.translate(x,y);ctx.rotate(angle);ctx.drawImage(textures[variant%6],-size/2,-size/2,size,size);ctx.restore();}
  function leaf(x:number,y:number,a:number,size:number,shade:number,opacity:number){ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.fillStyle=`rgba(${48+shade},${71+shade},${24+shade*.4},${opacity})`;ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(-size*.65,-size*.6,-size*.4,-size*1.5,0,-size*1.85);ctx.bezierCurveTo(size*.5,-size*1.2,size*.65,-size*.45,0,0);ctx.fill();ctx.restore();}
  function branch(x:number,y:number,a:number,len:number,depth:number,seed:number,age:number,delay:number,opacity:number){
   const g=ease((age-delay)/650);if(g<=0||opacity<.018)return;
@@ -28,12 +58,13 @@ export default function GrowthTrail({paused,resetKey,reduced,onGrow}:{paused:boo
   if(samples.current.length>260)samples.current.splice(0,samples.current.length-260);samples.current=samples.current.filter(s=>clock.current-s.born<7100);ctx.font='8px "Courier New",monospace';ctx.textAlign='center';ctx.textBaseline='middle';
   for(let i=0;i<samples.current.length;i++){
    const s=samples.current[i],age=clock.current-s.born,fade=ease((7100-age)/4300)*Math.exp(-Math.max(0,travel.current-s.distance-140)/370);if(fade<.018)continue;const growth=ease((age-250)/1100),nx=-Math.sin(s.angle),ny=Math.cos(s.angle);
-   // Two close, gently winding rows retain the path's width without the diffuse green carpet.
+   // Two binary rows germinate into a soft, textured moss bed and branching fronds.
    for(const side of [-1,1]){const offset=side*4,x=s.x+nx*offset,y=s.y+ny*offset;
     if(s.id%2===0){ctx.fillStyle=`rgba(74,92,58,${(1-growth)*fade*.46})`;ctx.fillText(hash(s.id+side*17)>.5?'1':'0',x,y);}
     const prev=samples.current[i-1];if(prev&&Math.hypot(s.x-prev.x,s.y-prev.y)<24){ctx.strokeStyle=`rgba(87,110,52,${fade*growth*.27})`;ctx.lineWidth=.45;ctx.beginPath();ctx.moveTo(prev.x-Math.sin(prev.angle)*offset,prev.y+Math.cos(prev.angle)*offset);ctx.quadraticCurveTo(s.x-Math.cos(s.angle)*2+nx*offset,s.y-Math.sin(s.angle)*2+ny*offset,x,y);ctx.stroke();}
     if(s.id%4===0){leaf(x,y,s.angle+side*.7,1.6*growth,hash(s.id)*20,fade*growth*.58);}
    }
+   for(let tuft=0;tuft<3;tuft++){const seed=s.id*19+tuft*173,r=hash(seed),g=ease((age-180-r*360)/1250);if(g<=0)continue;const offset=(tuft-1)*5+(r-.5)*3,jitter=(hash(seed+3)-.5)*5,biome=Math.floor(hash(Math.floor(s.id/22)+43)*6);stamp(s.x+nx*offset+Math.cos(s.angle)*jitter,s.y+ny*offset+Math.sin(s.angle)*jitter,(18+hash(seed+4)*9)*(.3+.7*g),biome,fade*g*.78,hash(seed+6)*6.28);}
    if(s.id%10===0)for(let root=0;root<4;root++){const side=root%2?1:-1,a=s.angle+side*(.48+Math.floor(root/2)*.65+hash(s.id+root)*.24);branch(s.x+nx*side*3,s.y+ny*side*3,a,18+hash(s.id*7+root)*19,3,s.id*17+root*71,age,250+root*120,fade*.82);}
   }frame=requestAnimationFrame(draw);
  };
