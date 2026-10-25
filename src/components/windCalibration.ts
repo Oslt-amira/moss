@@ -2,10 +2,10 @@
 // Wind faders keep even worst-case adjacent crossfade peaks below full scale.
 export const windCalibration = {
   "breeze": {
-    "trim": 22.06416,
-    "lowpassHz": 5000,
-    "rmsDb": -48.87,
-    "peakDb": -24.09
+    "trim": 19.00241,
+    "lowpassHz": 3200,
+    "rmsDb": -47.58,
+    "peakDb": -28.44
   },
   "windy": {
     "trim": 3.68923,

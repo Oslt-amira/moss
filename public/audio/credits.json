@@ -70,16 +70,6 @@
     "sha256": "a8ddc9b79f059ecba57c107308f8fbbaaa0862b7f253a09666cbf9d43bfda6e2"
   },
   {
-    "file": "breeze.mp3",
-    "title": "Wind(leaves).WAV by o_ciz",
-    "source": "https://freesound.org/people/o_ciz/sounds/475448/",
-    "download": "https://cdn.freesound.org/previews/475/475448_7009965-hq.mp3",
-    "license": "CC0 1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "bytes": 3776592,
-    "sha256": "32334db89c207004f5f290ec94d775670ffa846f3f63e33da3065bed5346def8"
-  },
-  {
     "file": "windy.mp3",
     "title": "Wind, interior, very slow howling, window, winter, cold, 10.mp3 by TRP",
     "source": "https://freesound.org/people/TRP/sounds/576970/",
@@ -98,5 +88,15 @@
     "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
     "bytes": 836928,
     "sha256": "171cd2bd2352ece87563a0c9b61bd6abd08eff66e9787324d53f29ff6830c360"
+  },
+  {
+    "file": "breeze.mp3",
+    "title": "Soft breeze at Budaorsi koparok - No1 by rubindaniel",
+    "source": "https://freesound.org/people/rubindaniel/sounds/844817/",
+    "download": "https://cdn.freesound.org/previews/844/844817_15082088-hq.mp3",
+    "license": "CC0 1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "bytes": 1011557,
+    "sha256": "f36a81ad2e40dd6f2fe3df3a4d8e72f39c7b690cb30491faefd8f6a58b00dc1c"
   }
 ]

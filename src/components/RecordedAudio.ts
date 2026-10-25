@@ -13,7 +13,7 @@ export function useAmbientAudio(params:Params){
  const rig=useRef<Rig|null>(null),desired=useRef(params);desired.current=params;
  const ensureTrack=useCallback((r:Rig,key:Key)=>{
   const existing=r.tracks.get(key);if(existing)return existing;
-  const audio=document.createElement('audio');audio.src=`/audio/${key}.mp3?v=20261025-level-matched`;audio.preload='none';audio.loop=key!=='owl'&&key!=='thunder';audio.dataset.recording=key;
+  const audio=document.createElement('audio');audio.src=`/audio/${key}.mp3?v=20261025-soft-breeze`;audio.preload='none';audio.loop=key!=='owl'&&key!=='thunder';audio.dataset.recording=key;
   const source=r.context.createMediaElementSource(audio),gain=r.context.createGain();gain.gain.value=0;const calibration=key==='breeze'||key==='windy'||key==='storm'?windCalibration[key]:null;const tone=calibration||key==='rainstorm'?r.context.createBiquadFilter():null;if(tone){if(calibration){tone.type='lowpass';tone.frequency.value=calibration.lowpassHz;tone.Q.value=.55;}else{tone.type='highshelf';tone.frequency.value=3800;tone.gain.value=-5;}source.connect(tone);tone.connect(gain);}else source.connect(gain);gain.connect(r.master);r.bank.appendChild(audio);
   audio.addEventListener('waiting',()=>{if(!r.disposed)setLoading(true);});audio.addEventListener('playing',()=>{if(!r.disposed)setLoading(false);});audio.addEventListener('error',()=>{if(!r.disposed){setLoading(false);setError('A recording could not load. Open volume to retry.');}});
   const track={audio,source,gain,tone,target:0,idleSince:0};r.tracks.set(key,track);return track;
@@ -24,14 +24,14 @@ export function useAmbientAudio(params:Params){
   r.master.gain.setTargetAtTime(enabled?p.volume:0,t,.35);
   if(!enabled){r.tracks.forEach(track=>{track.audio.pause();});return;}
   const wind=blend(clamp((p.wind-.55)/1.95)),rain=blend(clamp((p.rainLevel-.25)/.75));
-  const weights:Partial<Record<Key,number>>={breeze:wind[0]*.64*clamp(p.wind/.4)*windCalibration.breeze.trim,windy:wind[1]*.60*windCalibration.windy.trim,storm:wind[2]*.56*windCalibration.storm.trim};
-  if(p.weather!=='clear'){for(const key of ['breeze','windy','storm'] as const)weights[key]=(weights[key]??0)*.3;}
+  const weights:Partial<Record<Key,number>>={};
+  if(p.weather==='clear'){weights.breeze=wind[0]*.64*clamp(p.wind/.4)*windCalibration.breeze.trim;weights.windy=wind[1]*.60*windCalibration.windy.trim;weights.storm=wind[2]*.56*windCalibration.storm.trim;}
   if(p.weather==='rain'){weights.drizzle=rain[0]*.72;weights.rain=rain[1]*.52;weights.rainstorm=rain[2]*.42;}
   if(p.weather==='night'){weights.crickets=.45;weights.fire=clamp((p.nightLevel-.30)/.37)*.38;}
   for(const key of Object.keys(weights) as Key[]){if((weights[key]??0)>.001)ensureTrack(r,key);}
   r.tracks.forEach((track,key)=>{
    if(key==='owl'||key==='thunder')return;
-   const target=weights[key]??0;track.target=target;track.gain.gain.setTargetAtTime(target,t,.65);
+   const target=weights[key]??0;track.target=target;track.gain.gain.setTargetAtTime(target,t,p.weather!=='clear'&&(key==='breeze'||key==='windy'||key==='storm')?.12:.65);
    if(target>.001){track.idleSince=0;play(r,track);}else if(!track.idleSince)track.idleSince=t;
   });
   if(p.weather!=='night'||p.nightLevel<.72){const owl=r.tracks.get('owl');owl?.gain.gain.setTargetAtTime(0,t,.4);owl?.audio.pause();r.nextOwl=0;}
@@ -40,7 +40,7 @@ export function useAmbientAudio(params:Params){
  useEffect(sync,[params.weather,params.sound,params.paused,params.volume,params.wind,params.rainLevel,params.nightLevel,sync]);
  useEffect(()=>{const timer=setInterval(()=>{
   const r=rig.current,p=desired.current;if(!r||!p.sound||p.paused||p.volume<=0||r.context.state!=='running')return;const now=r.context.currentTime;
-  r.tracks.forEach((track,key)=>{if(key!=='owl'&&key!=='thunder'&&track.target<.001&&track.idleSince&&now-track.idleSince>2.5)track.audio.pause();});
+  r.tracks.forEach((track,key)=>{if(key!=='owl'&&key!=='thunder'&&track.target<.001&&track.idleSince&&now-track.idleSince>(p.weather!=='clear'&&(key==='breeze'||key==='windy'||key==='storm')?.6:2.5))track.audio.pause();});
   if(p.weather==='night'&&p.nightLevel>=.72){if(!r.nextOwl)r.nextOwl=now+8+Math.random()*8;if(now>=r.nextOwl){const owl=ensureTrack(r,'owl');owl.audio.currentTime=0;owl.gain.gain.setTargetAtTime(.18+clamp((p.nightLevel-.72)/.28)*.08,now,.4);play(r,owl);r.nextOwl=now+110+Math.random()*65;}}
   if(p.weather==='rain'&&p.rainLevel>=.72){if(!r.nextThunder)r.nextThunder=now+12+Math.random()*12;if(now>=r.nextThunder){const thunder=ensureTrack(r,'thunder');thunder.audio.currentTime=0;thunder.gain.gain.setTargetAtTime(.18,now,.5);play(r,thunder);r.nextThunder=now+100+Math.random()*60;}}
  },500);return()=>clearInterval(timer);},[ensureTrack,play]);

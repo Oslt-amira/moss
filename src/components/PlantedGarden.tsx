@@ -3,12 +3,15 @@ import {useEffect, useMemo, useRef} from 'react';
 import {useFrame} from '@react-three/fiber';
 import * as THREE from 'three';
 import type {PlantedSeed} from './seeds';
+import PlantedMushroom from './PlantedMushroom';
 
 const hash=(n:number)=>{const x=Math.sin(n*127.1+9.3)*43758.5453;return x-Math.floor(x);};
 const ease=(x:number)=>{const t=THREE.MathUtils.clamp(x,0,1);return t*t*(3-2*t);};
 type Props={plant:PlantedSeed;wind:number;paused:boolean;reduced:boolean};
 
-export default function PlantedGarden({plant,wind,paused,reduced}:Props){
+export default function PlantedGarden(props:Props){return props.plant.kind==='mushroom'?<PlantedMushroom {...props}/>:<PlantedFlower {...props}/>;}
+
+function PlantedFlower({plant,wind,paused,reduced}:Props){
  const root=useRef<THREE.Group>(null),growth=useRef<THREE.Group>(null),bloom=useRef<THREE.Group>(null),seed=useRef<THREE.Mesh>(null);
  const leaves=useRef<THREE.InstancedMesh>(null),flowers=useRef<THREE.InstancedMesh>(null),age=useRef(0),energy=useRef(0);
  const variation=hash(plant.id+7),height=(plant.kind==='clover'?.26:plant.kind==='bluebell'?.53:.45)*(1+variation*.35);
