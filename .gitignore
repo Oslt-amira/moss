@@ -1,0 +1,10 @@
+node_modules/
+.npm-cache/
+.next/
+.next-dev/
+out/
+*.tsbuildinfo
+.env*
+.sites-local/
+outputs/
+*.tar.gz
