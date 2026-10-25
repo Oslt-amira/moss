@@ -5,3 +5,4 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 
 .glass-dock:has([aria-expanded="true"]) .icon-button[data-tooltip]:before{display:none}
+.glass-panel{background:linear-gradient(125deg,#f9fcf0c9,#f3f7eb9c 50%,#f5faecd1);backdrop-filter:blur(28px) saturate(1.15);-webkit-backdrop-filter:blur(28px) saturate(1.15)}.panel-heading{color:#405338}.panel-description{color:#637358}.instructions dd{color:#53664a}.instructions dt{color:#3f5632}.panel-caption{color:#768569}
