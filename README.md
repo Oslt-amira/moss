@@ -1,6 +1,6 @@
 # Moss — a living experiment
 
-An interactive geological art study built with Next.js, React Three Fiber, Three.js, and GSAP. All 3D geometry, vegetation, rock textures, cursor growth, and ambient sound are generated locally in the browser. No paid APIs or external models are required.
+An interactive geological art study built with Next.js, React Three Fiber, Three.js, and GSAP. Geometry, vegetation, and cursor growth are procedural. All audio comes from ten real CC0 recordings bundled locally in public/audio; the application does not synthesize sound. No paid APIs or external models are required.
 
 ## Run
 
@@ -13,20 +13,22 @@ Open http://localhost:3002. `npm run build` creates a static export in `out/`. `
 
 ## Explore
 
-- Move the cursor to plant binary traces. A smoothed ribbon of binary cells curls into fine moss and spiral tendrils. It fades over about six seconds, faster as you move away, keeping the specimen clear.
+- Move the cursor to plant binary traces. Two slightly narrower rows of binary cells grow into leafy fronds with several generations of recursively branching stems. The diffuse moss gradient is removed, and the growth still fades behind movement.
 - Drag the specimen horizontally to rotate it. Brush or click the ferns and flowers to disturb their springing stems.
 - Use the **Layers** icon to open an illustrated geological cross-section. Inspect the middle layer to discover a sculpted ammonite fossil.
-- Adjust **Breeze** to vary plant motion. Toggle ambient sound, pause the scene, or reset the garden using the glass dock.
-- Open **Atmosphere** for Daylight, Rain, and Crickets. Rain adds falling droplets, ripples, a gray sky, and synthesized rainfall. Crickets adds moonlit colors, glowing fireflies, and synthesized cricket calls. A volume slider and mute control manage all audio.
+- Adjust the existing **Breeze** slider to crossfade gentle breeze, windy-day, and storm recordings and vary plant motion. Toggle ambient sound, pause the scene, or reset the garden using the glass dock.
+- Open **Atmosphere** for Daylight, Rain, and Nocturn. The existing slider becomes rainfall intensity in Rain (droplets → rain → storm with recorded thunder), and nocturnal intensity in Nocturn (crickets → crickets + fire → crickets + fire + occasional recorded wolf howl). No extra controls are introduced. In Daylight it remains the volume slider.
 - Open **About** for instructions or **Breeze** for the wind slider. These use translucent, blurred glass panels. Escape closes a panel and restores focus to its dock button.
 - Touch devices grow traces while dragging. Reduced motion preferences disable ambient movement and the cursor effect.
 
 ## Source
 
-- `src/app/page.tsx`: composition, state, controls, GSAP entrance, and synthesized wind audio.
+- `src/app/page.tsx`: composition, state, existing controls, and GSAP entrance.
 - `src/components/Specimen.tsx`: detailed noise-sculpted gray rock, instanced moss, responsive ferns, flowers, a 3D fossil, and weather lighting.
 - `src/components/GrowthTrail.tsx`: bounded canvas trail with staged code, branching growth, leaves, and decay.
-- `src/components/Atmosphere.tsx`: animated weather, fireflies, and user-initiated Web Audio synthesis.
+- `src/components/Atmosphere.tsx`: animated weather and fireflies.
+- `src/components/RecordedAudio.ts`: lazy field-recording playback, equal-power crossfades, and occasional recorded wolf/thunder layers.
+- `public/audio/CREDITS.txt` and `public/audio/credits.json`: creator, original source, CC0 license, download URL, and SHA-256 for every bundled recording.
 - `src/components/GeologicalDiagram.tsx`: cross-section callouts and accessible fossil discovery.
 - `src/app/globals.css`: full-screen minimal composition, translucent glass dock, warped highlights, and responsive panels.
 
