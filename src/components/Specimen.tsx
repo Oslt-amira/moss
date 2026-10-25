@@ -1,13 +1,15 @@
 'use client';
 
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { ContactShadows } from '@react-three/drei';
 import { useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { ImprovedNoise } from 'three/examples/jsm/math/ImprovedNoise.js';
 import type { Weather } from './Atmosphere';
+import PlantedGarden from './PlantedGarden';
+import type {PlantedSeed,SeedKind} from './seeds';
 
-export type SpecimenProps = { paused: boolean; exploded: boolean; wind: number; resetKey: number; reduced: boolean; onReady: () => void; weather: Weather; fossilFound:boolean; onDiscover:()=>void };
+export type SpecimenProps = { paused: boolean; exploded: boolean; wind: number; resetKey: number; reduced: boolean; onReady: () => void; weather: Weather; fossilFound:boolean; onDiscover:()=>void; selectedSeed:SeedKind|null; plants:PlantedSeed[]; onPlant:(position:[number,number,number])=>void };
 const perlin=new ImprovedNoise();
 const noise=(x:number,y:number,z:number)=>perlin.noise(x+17.3,y+8.1,z-4.7)*.64+perlin.noise(x*2.1+31,y*2.1,z*2.1)*.26+perlin.noise(x*4.3,y*4.3,z*4.3)*.10;
 function random(seed:number) { let a=seed; return () => { a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
@@ -19,7 +21,7 @@ function surface(v:THREE.Vector3) {
 }
 
 
-function Rock({ layer=0,weather }: { layer?:number;weather:Weather }) {
+function Rock({ layer=0,weather,onPlant }: { layer?:number;weather:Weather;onPlant?:(event:ThreeEvent<MouseEvent>)=>void }) {
   const bump=useMemo(()=>{const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;const ctx=canvas.getContext('2d')!;const pixels=ctx.createImageData(512,512);const rng=random(17);for(let y=0;y<512;y++)for(let x=0;x<512;x++){const i=(y*512+x)*4;const grain=rng()*90;const veins=Math.sin(y*.17+Math.sin(x*.035)*8)*24;const n=90+grain+veins;pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=n;pixels.data[i+3]=255;}ctx.putImageData(pixels,0,0);const texture=new THREE.CanvasTexture(canvas);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(3,2);return texture;},[]);
   const geo = useMemo(() => {
     const g=new THREE.SphereGeometry(1,layer===0?160:112,layer===0?112:80); const p=g.attributes.position; const colors=[]; const c=new THREE.Color();
@@ -27,7 +29,7 @@ function Rock({ layer=0,weather }: { layer?:number;weather:Weather }) {
     g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3)); g.computeVertexNormals(); return g;
   },[layer]);
   useEffect(()=>()=>{geo.dispose();bump.dispose();},[geo,bump]);
-  return <mesh geometry={geo} castShadow receiveShadow><meshStandardMaterial vertexColors roughness={weather==='rain'?.66:.96} bumpMap={bump} bumpScale={.17} metalness={.025}/></mesh>;
+  return <mesh geometry={geo} castShadow receiveShadow onClick={onPlant}><meshStandardMaterial vertexColors roughness={weather==='rain'?.66:.96} bumpMap={bump} bumpScale={.17} metalness={.025}/></mesh>;
 }
 
 function Moss({wind,paused,reduced}:{wind:number;paused:boolean;reduced:boolean}) {
@@ -115,7 +117,8 @@ function World(props:SpecimenProps) {
     <ambientLight intensity={props.weather==='night'?.25:props.weather==='rain'?.65:.8}/><hemisphereLight args={[props.weather==='night'?'#738fbd':'#f0f0eb',props.weather==='night'?'#101b1d':'#525550',props.weather==='night'?.55:1.15]}/><directionalLight position={[-3,7,4]} intensity={props.weather==='night'?1.55:props.weather==='rain'?1.85:3.2} color={props.weather==='night'?'#b3c9ee':'#f7f7f2'} castShadow shadow-mapSize={[2048,2048]}/><directionalLight position={[4,2,-3]} intensity={props.weather==='night'?1.9:1.1} color={props.weather==='night'?'#8ba6d4':'#e5e7e2'}/>
     <group ref={root}>
       <group ref={top}>
-        <Rock weather={props.weather}/><Moss wind={props.wind} paused={props.paused} reduced={props.reduced}/>
+        <Rock weather={props.weather} onPlant={event=>{if(!props.selectedSeed||props.exploded||props.paused||event.delta>6||!top.current)return;const point=top.current.worldToLocal(event.point.clone());if(point.y<.22||(event.face?.normal.y??0)<.1)return;event.stopPropagation();props.onPlant([point.x,point.y+.025,point.z]);}}/><Moss wind={props.wind} paused={props.paused} reduced={props.reduced}/>
+        {props.plants.map(plant=><PlantedGarden key={plant.id} plant={plant} wind={props.wind} paused={props.paused} reduced={props.reduced}/>)}
         {ferns.map((f,i)=><Fern key={i} {...f} wind={props.wind} paused={props.paused} reduced={props.reduced}/>)}
         <Flower position={[-.55,.65,-.13]} height={.85} seed={2} {...props}/><Flower position={[-.15,.76,-.28]} height={1.22} seed={3} {...props}/><Flower position={[.22,.76,-.24]} height={1.04} seed={4} {...props}/>
       </group>

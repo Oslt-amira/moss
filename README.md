@@ -13,6 +13,8 @@ Open http://localhost:3002. `npm run build` creates a static export in `out/`. `
 
 ## Explore
 
+- Open the **Seed tray**, choose Daisy, Clover, or Bluebell, then tap the upper moss surface to plant. Seedlings unfold over 8–11 seconds, bloom, and respond to brushing and the wind. Dragging still rotates the specimen. Put seeds away or press Escape to finish planting. Reset clears the planted garden. Up to 24 plants fit on the specimen; close placements leave room for existing seedlings.
+
 - Move the cursor to plant binary traces. Two slightly narrower rows of binary cells grow into a dense textured moss bed and leafy fronds with larger, irregularly spaced stems and several generations of recursive branches. Individual moss fronds supply the soft texture without a gradient wash, and the growth still fades behind movement.
 - Drag the specimen horizontally to rotate it. Brush or click the ferns and flowers to disturb their springing stems.
 - Use the **Layers** icon to open an illustrated geological cross-section. Inspect the middle layer to discover a sculpted ammonite fossil.
