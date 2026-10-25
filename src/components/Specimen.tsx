@@ -130,7 +130,7 @@ function World(props:SpecimenProps) {
 
 function ResponsiveCamera(){
  const {camera,size}=useThree();
- useEffect(()=>{const c=camera as THREE.PerspectiveCamera;const mobile=window.innerWidth<=700;c.fov=mobile?45:35;c.position.set(0,mobile?2.8:2.4,mobile?8.6:7.3);c.lookAt(0,.32,0);c.updateProjectionMatrix();},[camera,size.width,size.height]);
+ useEffect(()=>{const c=camera as THREE.PerspectiveCamera;const mobile=window.innerWidth<=700;c.fov=mobile?45:35;const aspect=size.width/Math.max(1,size.height),distance=Math.hypot(2.08,7.3),fit=mobile?1:Math.max(1,2.65/(Math.tan(THREE.MathUtils.degToRad(c.fov)/2)*aspect*distance));c.position.set(0,mobile?2.8:.32+2.08*fit,mobile?8.6:7.3*fit);c.lookAt(0,.32,0);c.updateProjectionMatrix();},[camera,size.width,size.height]);
  return null;
 }
 
