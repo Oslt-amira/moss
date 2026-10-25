@@ -1,5 +1,6 @@
 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
+import {windCalibration} from './windCalibration';
 export type Weather='clear'|'rain'|'night';
 type Params={weather:Weather;sound:boolean;paused:boolean;volume:number;wind:number;rainLevel:number;nightLevel:number};
 type Key='breeze'|'windy'|'storm'|'drizzle'|'rain'|'rainstorm'|'crickets'|'fire'|'owl'|'thunder';
@@ -12,8 +13,8 @@ export function useAmbientAudio(params:Params){
  const rig=useRef<Rig|null>(null),desired=useRef(params);desired.current=params;
  const ensureTrack=useCallback((r:Rig,key:Key)=>{
   const existing=r.tracks.get(key);if(existing)return existing;
-  const audio=document.createElement('audio');audio.src=`/audio/${key}.mp3?v=20261025-calm-wind`;audio.preload='none';audio.loop=key!=='owl'&&key!=='thunder';audio.dataset.recording=key;
-  const source=r.context.createMediaElementSource(audio),gain=r.context.createGain();gain.gain.value=0;const tone=key==='rainstorm'?r.context.createBiquadFilter():null;if(tone){tone.type='highshelf';tone.frequency.value=3800;tone.gain.value=-5;source.connect(tone);tone.connect(gain);}else source.connect(gain);gain.connect(r.master);r.bank.appendChild(audio);
+  const audio=document.createElement('audio');audio.src=`/audio/${key}.mp3?v=20261025-level-matched`;audio.preload='none';audio.loop=key!=='owl'&&key!=='thunder';audio.dataset.recording=key;
+  const source=r.context.createMediaElementSource(audio),gain=r.context.createGain();gain.gain.value=0;const calibration=key==='breeze'||key==='windy'||key==='storm'?windCalibration[key]:null;const tone=calibration||key==='rainstorm'?r.context.createBiquadFilter():null;if(tone){if(calibration){tone.type='lowpass';tone.frequency.value=calibration.lowpassHz;tone.Q.value=.55;}else{tone.type='highshelf';tone.frequency.value=3800;tone.gain.value=-5;}source.connect(tone);tone.connect(gain);}else source.connect(gain);gain.connect(r.master);r.bank.appendChild(audio);
   audio.addEventListener('waiting',()=>{if(!r.disposed)setLoading(true);});audio.addEventListener('playing',()=>{if(!r.disposed)setLoading(false);});audio.addEventListener('error',()=>{if(!r.disposed){setLoading(false);setError('A recording could not load. Open volume to retry.');}});
   const track={audio,source,gain,tone,target:0,idleSince:0};r.tracks.set(key,track);return track;
  },[]);
@@ -23,7 +24,7 @@ export function useAmbientAudio(params:Params){
   r.master.gain.setTargetAtTime(enabled?p.volume:0,t,.35);
   if(!enabled){r.tracks.forEach(track=>{track.audio.pause();});return;}
   const wind=blend(clamp((p.wind-.55)/1.95)),rain=blend(clamp((p.rainLevel-.25)/.75));
-  const weights:Partial<Record<Key,number>>={breeze:wind[0]*.28*clamp(p.wind/.6),windy:wind[1]*.20,storm:wind[2]*.18};
+  const weights:Partial<Record<Key,number>>={breeze:wind[0]*.64*clamp(p.wind/.4)*windCalibration.breeze.trim,windy:wind[1]*.60*windCalibration.windy.trim,storm:wind[2]*.56*windCalibration.storm.trim};
   if(p.weather!=='clear'){for(const key of ['breeze','windy','storm'] as const)weights[key]=(weights[key]??0)*.3;}
   if(p.weather==='rain'){weights.drizzle=rain[0]*.72;weights.rain=rain[1]*.52;weights.rainstorm=rain[2]*.42;}
   if(p.weather==='night'){weights.crickets=.45;weights.fire=clamp((p.nightLevel-.30)/.37)*.38;}

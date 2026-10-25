@@ -71,32 +71,32 @@
   },
   {
     "file": "breeze.mp3",
-    "title": "Gentle wind by fthgurdy",
-    "source": "https://freesound.org/people/fthgurdy/sounds/528944/",
-    "download": "https://cdn.freesound.org/previews/528/528944_3302313-hq.mp3",
+    "title": "Wind(leaves).WAV by o_ciz",
+    "source": "https://freesound.org/people/o_ciz/sounds/475448/",
+    "download": "https://cdn.freesound.org/previews/475/475448_7009965-hq.mp3",
     "license": "CC0 1.0",
     "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "bytes": 221433,
-    "sha256": "4667388a7e4d0e080904fb072130495da659ed397466e74d6c52950e34c9730e"
+    "bytes": 3776592,
+    "sha256": "32334db89c207004f5f290ec94d775670ffa846f3f63e33da3065bed5346def8"
   },
   {
     "file": "windy.mp3",
-    "title": "Ambience Stereo_Interior Wind Through Window by JORDI77RS",
-    "source": "https://freesound.org/people/JORDI77RS/sounds/840120/",
-    "download": "https://cdn.freesound.org/previews/840/840120_6089768-hq.mp3",
+    "title": "Wind, interior, very slow howling, window, winter, cold, 10.mp3 by TRP",
+    "source": "https://freesound.org/people/TRP/sounds/576970/",
+    "download": "https://cdn.freesound.org/previews/576/576970_97550-hq.mp3",
     "license": "CC0 1.0",
     "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "bytes": 5837760,
-    "sha256": "2578b92a2f980bccf94270133dea51049d1df13dd71a274f83fa7e46c9a16f6b"
+    "bytes": 1366656,
+    "sha256": "5ca5b5d73b6bb54a0650b5e794938666dbc7a3b0454d8e2476985eab84a47968"
   },
   {
     "file": "storm.mp3",
-    "title": "Whistling And Fluttering Wind Between Buildings by vazdaz",
-    "source": "https://freesound.org/people/vazdaz/sounds/787541/",
-    "download": "https://cdn.freesound.org/previews/787/787541_13591591-hq.mp3",
+    "title": "wind_howl2_stereo.wav by swiftoid",
+    "source": "https://freesound.org/people/swiftoid/sounds/117611/",
+    "download": "https://cdn.freesound.org/previews/117/117611_854782-hq.mp3",
     "license": "CC0 1.0",
     "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "bytes": 209660,
-    "sha256": "0f3a61fc252a32b5667946a54c8f79aec361222f28f90af447f96096b8b04ee2"
+    "bytes": 836928,
+    "sha256": "171cd2bd2352ece87563a0c9b61bd6abd08eff66e9787324d53f29ff6830c360"
   }
 ]
