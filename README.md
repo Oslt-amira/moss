@@ -13,18 +13,21 @@ Open http://localhost:3002. `npm run build` creates a static export in `out/`. `
 
 ## Explore
 
-- Move the cursor to plant binary traces. A continuous ribbon of binary cells gradually fills with overlapping, softly textured moss, subtle color patches, and branching edges. It fades after nineteen seconds.
+- Move the cursor to plant binary traces. A smoothed ribbon of binary cells curls into fine moss and spiral tendrils. It fades over about six seconds, faster as you move away, keeping the specimen clear.
 - Drag the specimen horizontally to rotate it. Brush or click the ferns and flowers to disturb their springing stems.
-- Use the **Layers** icon in the floating glass dock to separate the rock layers.
+- Use the **Layers** icon to open an illustrated geological cross-section. Inspect the middle layer to discover a sculpted ammonite fossil.
 - Adjust **Breeze** to vary plant motion. Toggle ambient sound, pause the scene, or reset the garden using the glass dock.
-- Open **About** for instructions or **Breeze** for the wind slider. Both use translucent, blurred glass panels. Escape closes the panel and restores focus to its dock button.
+- Open **Atmosphere** for Daylight, Rain, and Crickets. Rain adds falling droplets, ripples, a gray sky, and synthesized rainfall. Crickets adds moonlit colors, glowing fireflies, and synthesized cricket calls. A volume slider and mute control manage all audio.
+- Open **About** for instructions or **Breeze** for the wind slider. These use translucent, blurred glass panels. Escape closes a panel and restores focus to its dock button.
 - Touch devices grow traces while dragging. Reduced motion preferences disable ambient movement and the cursor effect.
 
 ## Source
 
 - `src/app/page.tsx`: composition, state, controls, GSAP entrance, and synthesized wind audio.
-- `src/components/Specimen.tsx`: procedural rock, instanced moss and grass, articulated ferns, flowers, and lighting.
+- `src/components/Specimen.tsx`: detailed noise-sculpted gray rock, instanced moss, responsive ferns, flowers, a 3D fossil, and weather lighting.
 - `src/components/GrowthTrail.tsx`: bounded canvas trail with staged code, branching growth, leaves, and decay.
+- `src/components/Atmosphere.tsx`: animated weather, fireflies, and user-initiated Web Audio synthesis.
+- `src/components/GeologicalDiagram.tsx`: cross-section callouts and accessible fossil discovery.
 - `src/app/globals.css`: full-screen minimal composition, translucent glass dock, warped highlights, and responsive panels.
 
 The supplied transparent moss image is used only as a fallback when WebGL is unavailable. Sound starts only after an explicit click.

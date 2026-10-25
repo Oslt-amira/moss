@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 
-type Sample={x:number;y:number;born:number;angle:number;width:number;id:number;start:boolean};
+type Sample={x:number;y:number;born:number;angle:number;width:number;id:number;distance:number};
 const fract=(n:number)=>n-Math.floor(n);
 const hash=(n:number)=>fract(Math.sin(n*127.1+31.7)*43758.5453);
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
@@ -40,65 +40,74 @@ function mossTexture(variant:number){
 }
 
 export default function GrowthTrail({paused,resetKey,reduced,onGrow}:{paused:boolean;resetKey:number;reduced:boolean;onGrow:()=>void}){
- const canvas=useRef<HTMLCanvasElement>(null),samples=useRef<Sample[]>([]),clock=useRef(0),serial=useRef(0),grow=useRef(onGrow);grow.current=onGrow;
- useEffect(()=>{samples.current=[];serial.current=0;},[resetKey]);
+ const canvas=useRef<HTMLCanvasElement>(null),samples=useRef<Sample[]>([]),clock=useRef(0),serial=useRef(0),travel=useRef(0),grow=useRef(onGrow);grow.current=onGrow;
+ useEffect(()=>{samples.current=[];serial.current=0;travel.current=0;},[resetKey]);
  useEffect(()=>{
-  const el=canvas.current!,ctx=el.getContext('2d')!;const textures=Array.from({length:6},(_,i)=>mossTexture(i));
-  let frame=0,w=0,h=0,previous=performance.now();let last:{x:number;y:number;time:number}|null=null;
+  const el=canvas.current!,ctx=el.getContext('2d')!,textures=Array.from({length:6},(_,i)=>mossTexture(i));
+  let frame=0,w=0,h=0,previous=performance.now(),active=false,lastMove=0;
+  let target={x:0,y:0},tip={x:0,y:0},anchor={x:0,y:0},heading=0,initialized=false;
   const coarse=matchMedia('(pointer:coarse)').matches;
   const resize=()=>{w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio,2);el.width=w*d;el.height=h*d;ctx.setTransform(d,0,0,d,0,0);};resize();
-  const leave=()=>{last=null;};
+  const leave=()=>{active=false;initialized=false;};
   const move=(event:PointerEvent)=>{
-   if(paused||reduced||(coarse&&event.buttons===0))return;
-   if((event.target as HTMLElement).closest('button,a,input,.dock-area')){last=null;return;}
+   if(paused||reduced||(coarse&&event.buttons===0)||(event.target as HTMLElement).closest('button,a,input,.dock-area,.fossil-note,.fossil-discovery')){active=false;initialized=false;return;}
    const x=event.clientX,y=event.clientY,now=performance.now();
-   if(!last||now-last.time>220||Math.hypot(x-last.x,y-last.y)>240){last={x,y,time:now};samples.current.push({x,y,born:clock.current,angle:0,width:19,id:serial.current++,start:true});return;}
-   const dx=x-last.x,dy=y-last.y,distance=Math.hypot(dx,dy);if(distance<6)return;
-   const count=Math.floor(distance/6),angle=Math.atan2(dy,dx);
-   const width=17+Math.min(11,distance/Math.max(8,now-last.time)*3);
-   for(let i=1;i<=count;i++){const q=i*6/distance;samples.current.push({x:last.x+dx*q,y:last.y+dy*q,born:clock.current,angle,width,id:serial.current++,start:false});}
-   const q=count*6/distance;last={x:last.x+dx*q,y:last.y+dy*q,time:now};
-   if(samples.current.length>800)samples.current.splice(0,samples.current.length-800);grow.current();
+   if(!initialized||now-lastMove>500||Math.hypot(x-target.x,y-target.y)>280){tip={x,y};anchor={x,y};heading=0;initialized=true;}
+   target={x,y};lastMove=now;active=true;
   };
-  function stamp(x:number,y:number,size:number,variant:number,alpha:number,angle:number){ctx.save();ctx.globalAlpha=alpha;ctx.translate(x,y);ctx.rotate(angle);ctx.drawImage(textures[variant%6],-size/2,-size/2,size,size);ctx.restore();}
-  function ramify(sample:Sample,growth:number,opacity:number){
-   if(sample.id%9!==0)return;
-   const side=sample.id%2?1:-1;
-   const startAngle=sample.angle+side*(.65+hash(sample.id)*.75);
-   function twig(x:number,y:number,a:number,length:number,depth:number,progress:number){
-    if(progress<=0)return;
-    const g=ease(progress),ex=x+Math.cos(a)*length*g,ey=y+Math.sin(a)*length*g;
-    ctx.strokeStyle=`rgba(77,99,43,${opacity*.34})`;ctx.lineWidth=.45+depth*.18;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+Math.cos(a-.18)*length*g*.65,y+Math.sin(a-.18)*length*g*.65,ex,ey);ctx.stroke();
-    for(let j=0;j<4;j++){const q=j/4,local=ease((progress-q*.45)*2);stamp(x+(ex-x)*q,y+(ey-y)*q,(6+depth*4)*local,sample.id+j,opacity*.72*local,a+j);}
-    if(depth>0){const next=clamp((progress-.32)/.68);twig(ex,ey,a+side*.5,length*.62,depth-1,next);twig(x+(ex-x)*.7,y+(ey-y)*.7,a-side*.65,length*.48,depth-1,clamp((progress-.5)*2));}
+  function stamp(x:number,y:number,size:number,variant:number,alpha:number,angle:number){if(alpha<.008||size<.1)return;ctx.save();ctx.globalAlpha=alpha;ctx.translate(x,y);ctx.rotate(angle);ctx.drawImage(textures[variant%6],-size/2,-size/2,size,size);ctx.restore();}
+  // Inward-curling tendrils follow an organic spiral rather than rigid forks.
+  function curl(s:Sample,growth:number,opacity:number){
+   if(s.id%13!==0||growth<=0)return;
+   const side=s.id%2?1:-1,radius=9+hash(s.id*7)*14;
+   const a=s.angle+side*.7,nx=-Math.sin(s.angle),ny=Math.cos(s.angle);
+   const ox=s.x+nx*s.width*side*.45,oy=s.y+ny*s.width*side*.45;
+   const count=Math.floor(23*growth);let px=ox,py=oy;
+   for(let j=0;j<=count;j++){
+    const t=j/23,theta=a+side*t*Math.PI*2.25,r=radius*(1-t*.84);
+    const x=ox+Math.cos(a)*radius-Math.cos(theta)*r,y=oy+Math.sin(a)*radius-Math.sin(theta)*r;
+    ctx.strokeStyle=`rgba(83,109,51,${opacity*.19})`;ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo((px+x)/2-side*(y-py)*.15,(py+y)/2+side*(x-px)*.15,x,y);ctx.stroke();
+    stamp(x,y,(9-t*5)*ease(growth*2-t),Math.floor(hash(Math.floor(s.id/17)+43)*6),opacity*.54,theta);px=x;py=y;
    }
-   twig(sample.x+Math.cos(sample.angle+Math.PI/2)*sample.width*side*.4,sample.y+Math.sin(sample.angle+Math.PI/2)*sample.width*side*.4,startAngle,13+hash(sample.id*7)*18,2,growth);
   }
   const draw=(now:number)=>{
-   const dt=Math.min(now-previous,50);previous=now;if(!paused)clock.current+=dt;
-   ctx.clearRect(0,0,w,h);samples.current=samples.current.filter(s=>clock.current-s.born<19000);
-   ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='9px "Courier New",monospace';
-   // One continuous, variable-width ribbon of binary cells. Growth consumes each cell locally.
-   for(const s of samples.current){const age=clock.current-s.born,fade=ease((19000-age)/4000);const nx=-Math.sin(s.angle),ny=Math.cos(s.angle);
-    for(let row=-2;row<=2;row++){
-     const seed=s.id*19+row*173,r=hash(seed),g=ease((age-900-r*1200)/3000),offset=row*8.5;
-     if(s.id%2===0&&Math.abs(offset)<s.width*.95){ctx.fillStyle=`rgba(65,79,54,${(1-g)*fade*(.32+r*.25)*ease(age/180)})`;ctx.fillText(r>.5?'1':'0',s.x+nx*offset,s.y+ny*offset);}
+   const dt=Math.max(0,Math.min(now-previous,50));previous=now;if(!paused)clock.current+=dt;
+   ctx.clearRect(0,0,w,h);
+   if(active&&!paused&&!reduced&&now-lastMove<260){
+    const dx=target.x-tip.x,dy=target.y-tip.y,dist=Math.hypot(dx,dy);
+    if(dist>1.3){
+     const desired=Math.atan2(dy,dx);heading+=Math.atan2(Math.sin(desired-heading),Math.cos(desired-heading))*(1-Math.exp(-dt/75));
+     const mix=1-Math.exp(-dt/68);tip.x+=dx*mix;tip.y+=dy*mix;
+     const step=Math.hypot(tip.x-anchor.x,tip.y-anchor.y);
+     if(step>=5){
+      const count=Math.min(12,Math.floor(step/5));
+      for(let i=1;i<=count;i++){
+       const q=i/count,x=anchor.x+(tip.x-anchor.x)*q,y=anchor.y+(tip.y-anchor.y)*q;
+       travel.current+=step/count;const wave=Math.sin(travel.current*.026)*2.8;
+       samples.current.push({x:x-Math.sin(heading)*wave,y:y+Math.cos(heading)*wave,born:clock.current,angle:heading,width:11+Math.min(5,dist*.04),id:serial.current++,distance:travel.current});
+      }
+      anchor={...tip};grow.current();
+     }
     }
    }
-   for(const s of samples.current){const age=clock.current-s.born,fade=ease((19000-age)/4000);const nx=-Math.sin(s.angle),ny=Math.cos(s.angle);
-    const broad=ease((age-1050)/4200);if(broad<=0)continue;
-    // Overlapping cushions, soft shadows, and varied micro-leaves merge into an irregular living surface.
-    for(let j=0;j<5;j++){
-     const seed=s.id*19+j*173,r=hash(seed),g=ease((age-900-r*1200)/3000);if(g<=0)continue;
-     const offset=(j-2)*s.width*.39+(r-.5)*7;
-     const jitter=(hash(seed+3)-.5)*8;
-     const x=s.x+nx*offset+Math.cos(s.angle)*jitter,y=s.y+ny*offset+Math.sin(s.angle)*jitter;
-     const size=(17+hash(seed+4)*14)*(.25+.75*g);
-     const biome=Math.floor(hash(Math.floor(s.id/17)+43)*6);
-     stamp(x,y,size,biome,fade*g*.92,hash(seed+6)*6.28);
-     if(j===0||j===4)stamp(x+nx*(r-.5)*12,y+ny*(r-.5)*12,size*.8,biome,fade*g*.42,s.angle);
+   if(samples.current.length>360)samples.current.splice(0,samples.current.length-360);
+   samples.current=samples.current.filter(s=>clock.current-s.born<6200);
+   ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='8px "Courier New",monospace';
+   for(const s of samples.current){
+    const age=clock.current-s.born,fade=ease((6200-age)/4500)*Math.exp(-Math.max(0,travel.current-s.distance-95)/240),nx=-Math.sin(s.angle),ny=Math.cos(s.angle);
+    if(fade<.012)continue;
+    for(let row=-1;row<=1;row++){
+     const seed=s.id*19+row*173,r=hash(seed),g=ease((age-180-r*320)/1100),offset=row*7;
+     if(s.id%2===0){ctx.fillStyle=`rgba(85,105,72,${(1-g)*fade*(.29+r*.19)*ease(age/90)})`;ctx.fillText(r>.5?'1':'0',s.x+nx*offset,s.y+ny*offset);}
     }
-    ramify(s,ease((age-2200)/4200),fade);
+    for(let j=0;j<4;j++){
+     const seed=s.id*19+j*173,r=hash(seed),g=ease((age-180-r*360)/1250);if(g<=0)continue;
+     const offset=(j-1.5)*s.width*.40+(r-.5)*4,jitter=(hash(seed+3)-.5)*5;
+     const x=s.x+nx*offset+Math.cos(s.angle)*jitter,y=s.y+ny*offset+Math.sin(s.angle)*jitter;
+     const size=(15+hash(seed+4)*10)*(.3+.7*g),biome=Math.floor(hash(Math.floor(s.id/22)+43)*6);
+     stamp(x,y,size,biome,fade*g*.65,hash(seed+6)*6.28);
+    }
+    curl(s,ease((age-650)/1800),fade);
    }
    frame=requestAnimationFrame(draw);
   };
