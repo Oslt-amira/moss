@@ -128,9 +128,9 @@ function World(props:SpecimenProps) {
   </>;
 }
 
-function ResponsiveCamera(){
+function ResponsiveCamera({exploded}:{exploded:boolean}){
  const {camera,size}=useThree();
- useEffect(()=>{const c=camera as THREE.PerspectiveCamera;const mobile=window.innerWidth<=700;c.fov=mobile?45:35;const aspect=size.width/Math.max(1,size.height),distance=Math.hypot(2.08,7.3),fit=mobile?1:Math.max(1,2.65/(Math.tan(THREE.MathUtils.degToRad(c.fov)/2)*aspect*distance));c.position.set(0,mobile?2.8:.32+2.08*fit,mobile?8.6:7.3*fit);c.lookAt(0,.32,0);c.updateProjectionMatrix();},[camera,size.width,size.height]);
+ useEffect(()=>{const c=camera as THREE.PerspectiveCamera;const mobile=window.innerWidth<=700;c.fov=mobile?45:35;const aspect=size.width/Math.max(1,size.height),distance=Math.hypot(2.08,7.3),fit=mobile?1:Math.max(exploded?1.15:1,2.65/(Math.tan(THREE.MathUtils.degToRad(c.fov)/2)*aspect*distance));c.position.set(0,mobile?2.8:.32+2.08*fit,mobile?8.6:7.3*fit);c.lookAt(0,.32,0);c.updateProjectionMatrix();},[camera,size.width,size.height,exploded]);
  return null;
 }
 
@@ -139,6 +139,6 @@ export default function Specimen(props:SpecimenProps) {
   useEffect(()=>{try { const c=document.createElement('canvas');if(!c.getContext('webgl2'))setFailed(true);}catch{setFailed(true);}},[]);
   useEffect(()=>{if(failed)props.onReady();},[failed,props.onReady]);
   if(failed)return <div className="webgl-fallback"><img src="/moss-reference.png" alt="A living moss mound with delicate flowers"/><p>3D needs WebGL. You can still grow the cursor garden.</p></div>;
-  return <Canvas camera={{position:[0,2.4,7.3],fov:35}} dpr={[1,1.75]} shadows gl={{antialias:true,alpha:true,powerPreference:'high-performance'}} onCreated={({gl,camera})=>{gl.toneMapping=THREE.ACESFilmicToneMapping;gl.toneMappingExposure=1.1;camera.lookAt(0,.32,0);}}><ResponsiveCamera/><World {...props}/></Canvas>;
+  return <Canvas camera={{position:[0,2.4,7.3],fov:35}} dpr={[1,1.75]} shadows gl={{antialias:true,alpha:true,powerPreference:'high-performance'}} onCreated={({gl,camera})=>{gl.toneMapping=THREE.ACESFilmicToneMapping;gl.toneMappingExposure=1.1;camera.lookAt(0,.32,0);}}><ResponsiveCamera exploded={props.exploded}/><World {...props}/></Canvas>;
 }
 
