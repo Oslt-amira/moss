@@ -14,24 +14,6 @@ Source: https://freesound.org/people/courter/sounds/447818/
 License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
 SHA-256: 8d47aa046933fe15d56c2011c146dd74a794392759014ab433b21d0685ef7091
 
-breeze.mp3
-Soft Wind by florianreichelt
-Source: https://freesound.org/people/florianreichelt/sounds/459977/
-License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
-SHA-256: e1cf29f5305a79edb5e57fb658c35e307078c392fb6bb6e8e8941e1ea7f67423
-
-windy.mp3
-Wind through the palm trees and some crickets chirping in the day (Gran Sabana, Venezuela) by felix.blume
-Source: https://freesound.org/people/felix.blume/sounds/384550/
-License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
-SHA-256: c9910a16a0d4e891c190d4df5e5cf8eaadd9096c0c694a41fabb2bc2fde8a060
-
-storm.mp3
-strong wind on coastal path.wav by bruno.auzet
-Source: https://freesound.org/people/bruno.auzet/sounds/706471/
-License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
-SHA-256: 223d629cf8562a5c7c552c1f937d041e51e8ce732efc7c3c1b2babd125b41091
-
 drizzle.mp3
 Rain Water Dripping Softly by florianreichelt
 Source: https://freesound.org/people/florianreichelt/sounds/459983/
@@ -61,3 +43,21 @@ Rolling thunder closer rain drops ms 77mel 190903.flac by TRP
 Source: https://freesound.org/people/TRP/sounds/574386/
 License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
 SHA-256: a8ddc9b79f059ecba57c107308f8fbbaaa0862b7f253a09666cbf9d43bfda6e2
+
+breeze.mp3
+Gentle wind by fthgurdy
+Source: https://freesound.org/people/fthgurdy/sounds/528944/
+License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
+SHA-256: 4667388a7e4d0e080904fb072130495da659ed397466e74d6c52950e34c9730e
+
+windy.mp3
+Ambience Stereo_Interior Wind Through Window by JORDI77RS
+Source: https://freesound.org/people/JORDI77RS/sounds/840120/
+License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
+SHA-256: 2578b92a2f980bccf94270133dea51049d1df13dd71a274f83fa7e46c9a16f6b
+
+storm.mp3
+Whistling And Fluttering Wind Between Buildings by vazdaz
+Source: https://freesound.org/people/vazdaz/sounds/787541/
+License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
+SHA-256: 0f3a61fc252a32b5667946a54c8f79aec361222f28f90af447f96096b8b04ee2

@@ -20,36 +20,6 @@
     "sha256": "8d47aa046933fe15d56c2011c146dd74a794392759014ab433b21d0685ef7091"
   },
   {
-    "file": "breeze.mp3",
-    "title": "Soft Wind by florianreichelt",
-    "source": "https://freesound.org/people/florianreichelt/sounds/459977/",
-    "download": "https://cdn.freesound.org/previews/459/459977_6253486-hq.mp3",
-    "license": "CC0 1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "bytes": 796213,
-    "sha256": "e1cf29f5305a79edb5e57fb658c35e307078c392fb6bb6e8e8941e1ea7f67423"
-  },
-  {
-    "file": "windy.mp3",
-    "title": "Wind through the palm trees and some crickets chirping in the day (Gran Sabana, Venezuela) by felix.blume",
-    "source": "https://freesound.org/people/felix.blume/sounds/384550/",
-    "download": "https://cdn.freesound.org/previews/384/384550_1661766-hq.mp3",
-    "license": "CC0 1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "bytes": 4736496,
-    "sha256": "c9910a16a0d4e891c190d4df5e5cf8eaadd9096c0c694a41fabb2bc2fde8a060"
-  },
-  {
-    "file": "storm.mp3",
-    "title": "strong wind on coastal path.wav by bruno.auzet",
-    "source": "https://freesound.org/people/bruno.auzet/sounds/706471/",
-    "download": "https://cdn.freesound.org/previews/706/706471_11519060-hq.mp3",
-    "license": "CC0 1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "bytes": 6071520,
-    "sha256": "223d629cf8562a5c7c552c1f937d041e51e8ce732efc7c3c1b2babd125b41091"
-  },
-  {
     "file": "drizzle.mp3",
     "title": "Rain Water Dripping Softly by florianreichelt",
     "source": "https://freesound.org/people/florianreichelt/sounds/459983/",
@@ -98,5 +68,35 @@
     "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
     "bytes": 929760,
     "sha256": "a8ddc9b79f059ecba57c107308f8fbbaaa0862b7f253a09666cbf9d43bfda6e2"
+  },
+  {
+    "file": "breeze.mp3",
+    "title": "Gentle wind by fthgurdy",
+    "source": "https://freesound.org/people/fthgurdy/sounds/528944/",
+    "download": "https://cdn.freesound.org/previews/528/528944_3302313-hq.mp3",
+    "license": "CC0 1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "bytes": 221433,
+    "sha256": "4667388a7e4d0e080904fb072130495da659ed397466e74d6c52950e34c9730e"
+  },
+  {
+    "file": "windy.mp3",
+    "title": "Ambience Stereo_Interior Wind Through Window by JORDI77RS",
+    "source": "https://freesound.org/people/JORDI77RS/sounds/840120/",
+    "download": "https://cdn.freesound.org/previews/840/840120_6089768-hq.mp3",
+    "license": "CC0 1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "bytes": 5837760,
+    "sha256": "2578b92a2f980bccf94270133dea51049d1df13dd71a274f83fa7e46c9a16f6b"
+  },
+  {
+    "file": "storm.mp3",
+    "title": "Whistling And Fluttering Wind Between Buildings by vazdaz",
+    "source": "https://freesound.org/people/vazdaz/sounds/787541/",
+    "download": "https://cdn.freesound.org/previews/787/787541_13591591-hq.mp3",
+    "license": "CC0 1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "bytes": 209660,
+    "sha256": "0f3a61fc252a32b5667946a54c8f79aec361222f28f90af447f96096b8b04ee2"
   }
 ]
