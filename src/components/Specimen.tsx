@@ -21,9 +21,13 @@ function Rock({ layer=0 }: { layer?:number }) {
   return <mesh geometry={geo} castShadow receiveShadow><meshStandardMaterial vertexColors roughness={.98} bumpMap={bump} bumpScale={.11} flatShading={layer>0}/></mesh>;
 }
 
-function Moss() {
+function Moss({wind,paused,reduced}:{wind:number;paused:boolean;reduced:boolean}) {
   const ref=useRef<THREE.InstancedMesh>(null);
   const grass=useRef<THREE.InstancedMesh>(null);
+  const uniforms=useRef({uMossTime:{value:0},uMossWind:{value:1}});
+  const tuft=useMemo(()=>{const vertices:number[]=[];const triangle=(...v:number[])=>vertices.push(...v);triangle(-.035,0,0,.035,0,0,0,1,0);for(let ring=0;ring<4;ring++){const y=.18+ring*.2;for(let k=0;k<3;k++){const a=k/3*Math.PI*2+ring*.7,len=.36-ring*.055,dx=Math.cos(a),dz=Math.sin(a);const x=dx*len,z=dz*len;triangle(0,y,0,x-dz*.12,y+.13,z+dx*.12,x*1.45,y+.3,z*1.45);triangle(0,y,0,x*1.45,y+.3,z*1.45,x+dz*.12,y+.13,z-dx*.12);}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));g.computeVertexNormals();return g;},[]);
+  useEffect(()=>()=>tuft.dispose(),[tuft]);
+  useFrame((_,dt)=>{if(!paused&&!reduced)uniforms.current.uMossTime.value+=Math.min(dt,.04);uniforms.current.uMossWind.value=reduced?0:wind;});
   useEffect(()=>{
     const rng=random(921); const m=new THREE.Object3D();const c=new THREE.Color();
     for(let i=0;i<18000;i++) {
@@ -32,16 +36,16 @@ function Moss() {
       const patch=noise(v.x*1.8,v.y*1.8,v.z*1.8);
       const size=(.009+rng()*.023)*(patch>.1?1.3:.75);
       m.position.copy(p).addScaledVector(v,.018);m.scale.set(size*(1+rng()),size*(.6+rng()),size);m.rotation.set(rng()*3,rng()*3,rng()*3); m.updateMatrix();ref.current!.setMatrixAt(i,m.matrix);
-      c.setHSL(.19+rng()*.065,.38+rng()*.25,.07+rng()*.12+(v.y*.015),THREE.SRGBColorSpace); ref.current!.setColorAt(i,c);
+      c.setHSL(.20+patch*.045+rng()*.025,.36+rng()*.24,.14+(patch+.7)*.095+rng()*.035,THREE.SRGBColorSpace); ref.current!.setColorAt(i,c);
     }
     ref.current!.instanceMatrix.needsUpdate=true;
-    for(let i=0;i<2400;i++) {
+    for(let i=0;i<7000;i++) {
       const theta=rng()*Math.PI*2,y=.35+rng()*.65,r=Math.sqrt(1-y*y);const v=new THREE.Vector3(r*Math.cos(theta),y,r*Math.sin(theta));
-      m.position.copy(surface(v)).addScaledVector(v,.03);m.rotation.set((rng()-.5)*.7,rng()*6,(rng()-.5)*.7);m.scale.set(.005+rng()*.004,.04+rng()*.10,.006);m.updateMatrix();grass.current!.setMatrixAt(i,m.matrix);c.setHSL(.20+rng()*.06,.42,.19+rng()*.18,THREE.SRGBColorSpace);grass.current!.setColorAt(i,c);
+      m.position.copy(surface(v)).addScaledVector(v,.03);m.rotation.set((rng()-.5)*.7,rng()*6,(rng()-.5)*.7);m.scale.set(.035+rng()*.025,.045+rng()*.07,.035+rng()*.025);m.updateMatrix();grass.current!.setMatrixAt(i,m.matrix);c.setHSL(.20+rng()*.06,.42,.19+rng()*.18,THREE.SRGBColorSpace);grass.current!.setColorAt(i,c);
     }
     grass.current!.instanceMatrix.needsUpdate=true;
   },[]);
-  return <><instancedMesh ref={ref} args={[undefined,undefined,18000]} castShadow receiveShadow><icosahedronGeometry args={[1,1]}/><meshStandardMaterial color="#a1ad71" roughness={1}/></instancedMesh><instancedMesh ref={grass} args={[undefined,undefined,2400]}><coneGeometry args={[1,1,3]}/><meshStandardMaterial color="#a6b27b" roughness={.9} side={THREE.DoubleSide}/></instancedMesh></>;
+  return <><instancedMesh ref={ref} args={[undefined,undefined,18000]} castShadow receiveShadow><icosahedronGeometry args={[1,1]}/><meshStandardMaterial color="#b0bf83" roughness={1}/></instancedMesh><instancedMesh ref={grass} args={[undefined,undefined,7000]} geometry={tuft}><meshStandardMaterial color="#acbb77" roughness={.92} side={THREE.DoubleSide} onBeforeCompile={shader=>{shader.uniforms.uMossTime=uniforms.current.uMossTime;shader.uniforms.uMossWind=uniforms.current.uMossWind;shader.vertexShader='uniform float uMossTime; uniform float uMossWind;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n transformed.x += sin(uMossTime * 1.4 + instanceMatrix[3].x * 5.0 + instanceMatrix[3].z * 4.0) * position.y * position.y * 0.15 * uMossWind;');}}/></instancedMesh></>;
 }
 
 function Fern({position,scale=1,rotation=0,seed,wind,paused,reduced}:{position:[number,number,number];scale?:number;rotation?:number;seed:number;wind:number;paused:boolean;reduced:boolean}) {
@@ -91,7 +95,7 @@ function World(props:SpecimenProps) {
     <ambientLight intensity={.7}/><hemisphereLight args={['#fffbe5','#343e23',1.2]}/><directionalLight position={[-3,7,4]} intensity={3.3} color="#fff5d6" castShadow shadow-mapSize={[2048,2048]}/><directionalLight position={[4,2,-3]} intensity={1.6} color="#e6eaca"/>
     <group ref={root}>
       <group ref={top}>
-        <Rock/><Moss/>
+        <Rock/><Moss wind={props.wind} paused={props.paused} reduced={props.reduced}/>
         {ferns.map((f,i)=><Fern key={i} {...f} wind={props.wind} paused={props.paused} reduced={props.reduced}/>)}
         <Flower position={[-.55,.65,-.13]} height={1.08} seed={2} {...props}/><Flower position={[-.15,.76,-.28]} height={1.44} seed={3} {...props}/><Flower position={[.22,.76,-.24]} height={1.17} seed={4} {...props}/>
       </group>
