@@ -7,7 +7,7 @@ import Atmosphere, {
   useAmbientAudio,
   type Weather,
 } from "@/components/Atmosphere";
-import GeologicalDiagram from "@/components/GeologicalDiagram";
+import GeologicalDiagram, { type DiagramProjection } from "@/components/GeologicalDiagram";
 import { seeds, type SeedKind, type PlantedSeed } from "@/components/seeds";
 const Specimen = dynamic(() => import("@/components/Specimen"), { ssr: false });
 function Icon({ name, size = 20 }: { name: string; size?: number }) {
@@ -156,6 +156,7 @@ export default function Home() {
   const [selectedSeed, setSelectedSeed] = useState<SeedKind | null>(null),
     [plants, setPlants] = useState<PlantedSeed[]>([]);
   const seedSerial = useRef(0);
+  const diagramProjection = useRef<DiagramProjection>(null);
   const onPlant = useCallback(
     (position: [number, number, number]) => {
       if (!selectedSeed) return;
@@ -317,6 +318,7 @@ export default function Home() {
           <Specimen
             paused={paused}
             exploded={exploded}
+            diagramProjection={diagramProjection}
             wind={wind}
             resetKey={resetKey}
             reduced={reduced}
@@ -330,7 +332,7 @@ export default function Home() {
           />
         </div>
         {exploded && (
-          <GeologicalDiagram found={fossilFound} onDiscover={onDiscover} />
+          <GeologicalDiagram found={fossilFound} onDiscover={onDiscover} projection={diagramProjection} />
         )}
       </section>
       <Atmosphere

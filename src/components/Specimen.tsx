@@ -2,14 +2,16 @@
 
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { ContactShadows } from '@react-three/drei';
-import { useMemo, useRef, useState, useEffect } from 'react';
+import { useMemo, useRef, useState, useEffect, type RefObject } from 'react';
 import * as THREE from 'three';
 import { ImprovedNoise } from 'three/examples/jsm/math/ImprovedNoise.js';
+import type { DiagramProjection } from './GeologicalDiagram';
 import type { Weather } from './Atmosphere';
 import PlantedGarden from './PlantedGarden';
 import type {PlantedSeed,SeedKind} from './seeds';
 
-export type SpecimenProps = { paused: boolean; exploded: boolean; wind: number; resetKey: number; reduced: boolean; onReady: () => void; weather: Weather; fossilFound:boolean; onDiscover:()=>void; selectedSeed:SeedKind|null; plants:PlantedSeed[]; onPlant:(position:[number,number,number])=>void };
+export type SpecimenProps = { paused: boolean; exploded: boolean; diagramProjection:RefObject<DiagramProjection|null>; wind: number; resetKey: number; reduced: boolean; onReady: () => void; weather: Weather; fossilFound:boolean; onDiscover:()=>void; selectedSeed:SeedKind|null; plants:PlantedSeed[]; onPlant:(position:[number,number,number])=>void };
+const fossilPosition:[number,number,number]=[.24,.27,.34];
 const perlin=new ImprovedNoise();
 const noise=(x:number,y:number,z:number)=>perlin.noise(x+17.3,y+8.1,z-4.7)*.64+perlin.noise(x*2.1+31,y*2.1,z*2.1)*.26+perlin.noise(x*4.3,y*4.3,z*4.3)*.10;
 function random(seed:number) { let a=seed; return () => { a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
@@ -94,7 +96,7 @@ function Fossil({found,onDiscover}:{found:boolean;onDiscover:()=>void}) {
  const [hover,setHover]=useState(false);
  const spiral=useMemo(()=>new THREE.CatmullRomCurve3(Array.from({length:180},(_,i)=>{const t=i/179,a=t*Math.PI*5.4,r=.025+Math.pow(t,1.8)*.39;return new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,0);})),[]);
  const ribs=useMemo(()=>Array.from({length:42},(_,i)=>{const t=.25+i/42*.75,a=t*Math.PI*5.4,r=.025+Math.pow(t,1.8)*.39;return new THREE.CatmullRomCurve3([new THREE.Vector3(Math.cos(a)*r*.88,Math.sin(a)*r*.88,-.003),new THREE.Vector3(Math.cos(a+.045)*r,Math.sin(a+.045)*r,.017),new THREE.Vector3(Math.cos(a+.07)*r*1.14,Math.sin(a+.07)*r*1.14,-.003)]);}),[]);
- return <group position={[.24,.27,.34]} rotation={[-Math.PI/2,0,.3]} onPointerOver={e=>{e.stopPropagation();setHover(true);}} onPointerOut={()=>setHover(false)} onClick={e=>{e.stopPropagation();onDiscover();}}>
+ return <group position={fossilPosition} rotation={[-Math.PI/2,0,.3]} onPointerOver={e=>{e.stopPropagation();setHover(true);}} onPointerOut={()=>setHover(false)} onClick={e=>{e.stopPropagation();onDiscover();}}>
   <mesh><tubeGeometry args={[spiral,160,.025,7,false]}/><meshStandardMaterial color={hover||found?'#c9d2be':'#aab1ad'} roughness={.94} emissive={hover?'#4b553a':'#000000'} emissiveIntensity={.15}/></mesh>
   {ribs.map((curve,i)=><mesh key={i}><tubeGeometry args={[curve,5,.006,4,false]}/><meshStandardMaterial color="#737f80" roughness={1}/></mesh>)}
   <mesh visible={false}><sphereGeometry args={[.5,12,8]}/><meshBasicMaterial transparent opacity={0}/></mesh>
@@ -103,7 +105,8 @@ function Fossil({found,onDiscover}:{found:boolean;onDiscover:()=>void}) {
 
 function World(props:SpecimenProps) {
   const root=useRef<THREE.Group>(null),top=useRef<THREE.Group>(null),mid=useRef<THREE.Group>(null),bottom=useRef<THREE.Group>(null);
-  const dragging=useRef(false), last=useRef(0), rotation=useRef(-.35), smooth=useRef(-.35), time=useRef(0);const {pointer,gl}=useThree();
+  const dragging=useRef(false), last=useRef(0), rotation=useRef(-.35), smooth=useRef(-.35), time=useRef(0);const {pointer,gl,camera}=useThree();
+  const anchor=useMemo(()=>new THREE.Vector3(),[]);
   const ferns=useMemo(()=> {const rng=random(44);return Array.from({length:12},(_,i)=>{const a=rng()*Math.PI*2,r=.35+rng()*.55; const p=surface(new THREE.Vector3(r*Math.cos(a),Math.sqrt(1-r*r),r*Math.sin(a)));return {position:p.toArray() as [number,number,number],scale:.21+rng()*.37,rotation:(rng()-.5)*.65,seed:i+1};});},[]);
   useEffect(()=>{ props.onReady(); },[props.onReady]);
   useEffect(()=>{rotation.current=-.35;},[props.resetKey]);
@@ -112,6 +115,23 @@ function World(props:SpecimenProps) {
     const d=Math.min(dt,.04); if(!props.paused&&!props.reduced)time.current+=d; const lerp=1-Math.exp(-d*3);
     if(root.current) {smooth.current+=(rotation.current+pointer.x*.055-smooth.current)*lerp;root.current.rotation.y=smooth.current;root.current.rotation.x=props.reduced?0:pointer.y*.035;root.current.position.y=Math.sin(time.current*.65)*.065-.1;}
     const e=props.exploded?1:0;if(top.current)top.current.position.y=THREE.MathUtils.lerp(top.current.position.y,e*.65,lerp);if(mid.current)mid.current.position.y=THREE.MathUtils.lerp(mid.current.position.y,-.46-e*.24,lerp);if(bottom.current)bottom.current.position.y=THREE.MathUtils.lerp(bottom.current.position.y,-.70-e*.72,lerp);
+    if(props.exploded&&props.diagramProjection.current&&root.current&&top.current&&mid.current&&bottom.current){
+     const rect=gl.domElement.getBoundingClientRect();
+     const project=(group:THREE.Group,point:THREE.Vector3)=>{
+      group.localToWorld(point).project(camera);
+      return {x:rect.left+(point.x+1)*rect.width/2,y:rect.top+(1-point.y)*rect.height/2};
+     };
+     const sample=(group:THREE.Group,layer:number,angle:number,y:number)=>{
+      const r=Math.sqrt(1-y*y),a=angle-root.current!.rotation.y;
+      const point=surface(anchor.set(Math.sin(a)*r,y,Math.cos(a)*r));
+      point.x*=1-layer*.08;point.z*=1-layer*.08;if(layer)point.y*=.30;
+      return project(group,point);
+     };
+     props.diagramProjection.current([
+      sample(top.current,0,-.64,.67),sample(mid.current,1,.67,.66),
+      sample(bottom.current,2,.77,.32),project(mid.current,anchor.fromArray(fossilPosition)),
+     ]);
+    }
   });
   return <>
     <ambientLight intensity={props.weather==='night'?.25:props.weather==='rain'?.65:.8}/><hemisphereLight args={[props.weather==='night'?'#738fbd':'#f0f0eb',props.weather==='night'?'#101b1d':'#525550',props.weather==='night'?.55:1.15]}/><directionalLight position={[-3,7,4]} intensity={props.weather==='night'?1.55:props.weather==='rain'?1.85:3.2} color={props.weather==='night'?'#b3c9ee':'#f7f7f2'} castShadow shadow-mapSize={[2048,2048]}/><directionalLight position={[4,2,-3]} intensity={props.weather==='night'?1.9:1.1} color={props.weather==='night'?'#8ba6d4':'#e5e7e2'}/>

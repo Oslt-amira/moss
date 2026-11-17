@@ -16,3 +16,5 @@
 .seed-options{grid-template-columns:repeat(4,minmax(0,1fr))}.seed-options button>span{font-size:9px}.seed-options small{font-size:6.5px;min-height:20px}
 /* Keep the desktop WebGL surface inside the viewport, including short windows. */
 @media(min-width:701px){.experience .specimen-stage{inset:0;width:100%;height:100%;transform:none}}
+.geological-diagram:not([data-projected]) .projected-callouts{visibility:hidden}
+.geological-diagram[data-projected] .fossil-discovery{transform:translateY(-50%)}
